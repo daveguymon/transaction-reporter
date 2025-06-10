@@ -60,8 +60,9 @@ function printMonthlyBreakdown(breakdown) {
 
   for (const month of months) {
     console.log(`${month}`);
-    const categories = breakdown[month];
-    for (const [category, total] of Object.entries(categories)) {
+    const categories = Object.entries(breakdown[month])
+      .sort((a, b) => b[1] - a[1]);
+    for (const [category, total] of categories) {
       console.log(`  ${category}: $${total.toFixed(2)}`);
     }
     console.log('');

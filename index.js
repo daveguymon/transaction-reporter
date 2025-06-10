@@ -35,7 +35,7 @@ cleanCsvFile('transactions.csv', () => {
           date,
           description,
           category,
-          amount: debit // negative indicates expense
+          amount: debit
         });
       }
     })

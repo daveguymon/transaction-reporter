@@ -20,6 +20,7 @@ function categorize(description) {
     if (golfKeywords.some(keyword => lowerCaseDescription.includes(keyword))) return 'Golf';
     if (medicalDentalKeywords.some(keyword => lowerCaseDescription.includes(keyword))) return 'Medical & Dental';
     if (mortgageAndBillsKeywords.some(keyword => lowerCaseDescription.includes(keyword))) return 'Mortgage & Bills';
+    if (subscriptionKeywords.some(keyword => lowerCaseDescription.includes(keyword))) return 'Subscription';
     if (lowerCaseDescription.includes('target')) return 'Target';
     if (lowerCaseDescription.includes('walmart') || lowerCaseDescription.includes('wal-mart')) return 'Walmart';
 

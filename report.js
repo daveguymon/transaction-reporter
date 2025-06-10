@@ -1,46 +1,76 @@
+const dayjs = require('dayjs');
+
 function generateReport(transactions) {
-  const expenses = {
+  const report = {
     total: 0,
     categories: {}
   };
 
-  const income = {
-    total: 0,
-  };
-
-  for (const tx of (transactions.debit || [])) {
+  for (const tx of transactions) {
     const amount = Math.abs(tx.amount);
     const category = tx.category;
 
-    if (!expenses.categories[category]) {
-      expenses.categories[category] = 0;
+    if (!report.categories[category]) {
+      report.categories[category] = 0;
     }
 
-    expenses.categories[category] += amount;
-    expenses.total += amount;
+    report.categories[category] += amount;
+    report.total += amount;
   }
-
-  const credits = Array.isArray(transactions.credit) ? transactions.credit : [];
-  for (const tx of credits) {
-    const amount = Math.abs(tx.amount);
-
-    income.total += amount;
-  }
-
-  const report = {expenses, income};
 
   return report;
 }
 
 function printReport(report) {
-const expenseEntries = Object.entries(report.expenses.categories)
-    .sort((a, b) => b[1] - a[1]);
-for (const [category, total] of expenseEntries) {
-    console.log(`${category.padEnd(20, ' ')}: $${total.toFixed(2)}`);
-}
+  console.log('\n💸 Total Spend Report\n---------------------');
+  for (const [category, total] of Object.entries(report.categories)) {
+    console.log(`${category}: $${total.toFixed(2)}`);
+  }
   console.log('---------------------');
-  console.log(`Total Income: $${report.income.total.toFixed(2)}\n`);
-  console.log(`Total Spend: $${report.expenses.total.toFixed(2)}\n`);
+  console.log(`Gross Total: $${report.total.toFixed(2)}\n`);
 }
 
-module.exports = { generateReport, printReport };
+function generateMonthlyCategoryBreakdown(transactions) {
+  const breakdown = {};
+
+  transactions.forEach(tx => {
+    const date = dayjs(tx.date);
+    if (!date.isValid()) return;
+
+    const month = date.format('YYYY-MM');
+    const category = tx.category;
+    const amount = Math.abs(tx.amount);
+
+    if (!breakdown[month]) {
+      breakdown[month] = {};
+    }
+    if (!breakdown[month][category]) {
+      breakdown[month][category] = 0;
+    }
+
+    breakdown[month][category] += amount;
+  });
+
+  return breakdown;
+}
+
+function printMonthlyBreakdown(breakdown) {
+  console.log('\n📅 Monthly Spend by Category\n----------------------------');
+  const months = Object.keys(breakdown).sort();
+
+  for (const month of months) {
+    console.log(`${month}`);
+    const categories = breakdown[month];
+    for (const [category, total] of Object.entries(categories)) {
+      console.log(`  ${category}: $${total.toFixed(2)}`);
+    }
+    console.log('');
+  }
+}
+
+module.exports = {
+  generateReport,
+  printReport,
+  generateMonthlyCategoryBreakdown,
+  printMonthlyBreakdown
+};

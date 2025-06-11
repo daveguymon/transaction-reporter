@@ -5,10 +5,12 @@ const {
   generateReport,
   printReport,
   generateMonthlyCategoryBreakdown,
-  printMonthlyBreakdown
+  printMonthlyBreakdown,
+  generateMonthlyCashFlow,
+  printMonthlyCashFlow
 } = require('./report');
 
-const transactions = [];
+const transactions = {credit: [], debit: []};
 const tempFilePath = 'transactions_trimmed.csv';
 
 function cleanCsvFile(originalFile, callback) {
@@ -31,11 +33,19 @@ cleanCsvFile('transactions.csv', () => {
 
       if (debit < 0) {
         const category = categorize(description);
-        transactions.push({
+        transactions.debit.push({
           date,
           description,
           category,
           amount: debit
+        });
+      } else {
+        const credit = parseFloat(row['Credit'].replace(/[^0-9.-]+/g, '')) || 0;
+        transactions.credit.push({
+          date,
+          description,
+          category: 'Credit',
+          amount: credit
         });
       }
     })
@@ -45,6 +55,9 @@ cleanCsvFile('transactions.csv', () => {
 
       const monthly = generateMonthlyCategoryBreakdown(transactions);
       printMonthlyBreakdown(monthly);
+
+      const cashFlow = generateMonthlyCashFlow(transactions);
+      printMonthlyCashFlow(cashFlow);
 
       // Cleanup temp file
       fs.unlinkSync(tempFilePath);

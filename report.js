@@ -1,4 +1,51 @@
+const chalk = require('chalk');
 const dayjs = require('dayjs');
+
+function generateMonthlyCashFlow(transactions) {
+  const monthly = {};
+
+  for (const tx of transactions.debit.concat(transactions.credit)) {
+    const date = dayjs(tx.date);
+    if (!date.isValid()) continue;
+
+    const month = date.format('YYYY-MM');
+    const amount = parseFloat(tx.amount);
+    const isDebit = amount < 0;
+
+    if (!monthly[month]) {
+      monthly[month] = { credit: 0, debit: 0 };
+    }
+
+    if (isDebit) {
+      monthly[month].debit += Math.abs(amount);
+    } else {
+      monthly[month].credit += amount;
+    }
+  }
+
+  return monthly;
+}
+
+function printMonthlyCashFlow(cashFlow) {
+  console.log(chalk.bold('\n📊 Monthly Cash Flow'));
+  console.log('---------------------');
+
+  const months = Object.keys(cashFlow).sort();
+
+  for (const month of months) {
+    const { credit, debit } = cashFlow[month];
+    const net = credit - debit;
+    const netColor = net >= 0 ? chalk.green : chalk.red;
+    const incomeBar = '▓'.repeat(Math.round(credit / 100));
+    const debitBar = '▓'.repeat(Math.round(debit / 100));
+
+    console.log(`${chalk.cyan(month)} | Income: $${credit.toFixed(2)} | Spending: $${debit.toFixed(2)} | Net: ${netColor(`$${net.toFixed(2)}`)}`);
+    console.log(`         ${chalk.green(incomeBar)} (Income)`);
+    console.log(`         ${chalk.red(debitBar)} (Spending)\n`);
+  }
+
+  console.log('---------------------\n');
+}
 
 function generateReport(transactions) {
   const report = {
@@ -6,7 +53,7 @@ function generateReport(transactions) {
     categories: {}
   };
 
-  for (const tx of transactions) {
+  for (const tx of transactions.debit) {
     const amount = Math.abs(tx.amount);
     const category = tx.category;
 
@@ -33,7 +80,7 @@ function printReport(report) {
 function generateMonthlyCategoryBreakdown(transactions) {
   const breakdown = {};
 
-  transactions.forEach(tx => {
+  transactions.debit.forEach(tx => {
     const date = dayjs(tx.date);
     if (!date.isValid()) return;
 
@@ -73,5 +120,7 @@ module.exports = {
   generateReport,
   printReport,
   generateMonthlyCategoryBreakdown,
-  printMonthlyBreakdown
+  printMonthlyBreakdown,
+  generateMonthlyCashFlow,
+  printMonthlyCashFlow
 };
